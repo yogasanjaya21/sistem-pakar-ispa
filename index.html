@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pakar Diagnosa Penyakit ISPA</title>
+    <style>
+        /* --- GLOBAL STYLES & LAYOUT --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef4f9; /* Light blue-gray background */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- HEADER / BANNER --- */
+        .header-banner {
+            background: linear-gradient(90deg, #007bff, #0056b3); /* Blue gradient */
+            color: white;
+            width: 100%;
+            padding: 30px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .header-banner h1 {
+            margin: 0;
+            font-size: 2.8em;
+            letter-spacing: 1px;
+        }
+        
+        /* --- TAB BUTTONS --- */
+        .tab-buttons-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 0 15px; /* Added padding for responsiveness */
+            flex-wrap: wrap; /* Allows buttons to wrap on small screens */
+            justify-content: center;
+        }
+
+        .tab-buttons-container button {
+            padding: 12px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 25px; /* Pill shape */
+            background-color: #f8f9fa; /* Light background */
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+        }
+
+        .tab-buttons-container button:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .tab-buttons-container button.active {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+            transform: none;
+        }
+
+        /* --- MAIN CONTENT AREA (CARD) --- */
+        .content-area {
+            max-width: 950px;
+            width: 95%;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            margin-bottom: 30px;
+            flex-grow: 1;
+            display: none;
+        }
+        
+        .content-area h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #eef4f9;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* --- GEJALA LIST STYLES (Checkboxes/Selects) --- */
+        .gejala-list {
+            max-height: 400px; /* Lebih tinggi untuk menampung lebih banyak item */
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+        
+        /* Forward Chaining Checkboxes */
+        .gejala-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            white-space: normal; /* Allow wrapping */
+        }
+        .gejala-item input[type="checkbox"] {
+            transform: scale(1.2);
+            margin-right: 10px;
+            min-width: 15px;
+        }
+        .gejala-item label {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+        
+        /* Certainty Factor Selects */
+        .gejala-cf-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .gejala-cf-label {
+            flex-grow: 1;
+            margin-right: 15px;
+            font-weight: 500;
+        }
+        .gejala-cf-select {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            width: 180px;
+            background-color: white;
+        }
+        .cf-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            padding: 5px 10px 5px 0;
+            border-bottom: 3px solid #007bff;
+            margin-bottom: 10px;
+            color: #0056b3;
+        }
+        .cf-header span:last-child {
+            width: 180px;
+            text-align: right;
+            padding-right: 5px;
+        }
+
+        /* --- CONTROLS & OUTPUT --- */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .controls button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        #process-btn-forward, #process-btn-cf {
+            background-color: #28a745; /* Green for success/action */
+            color: white;
+        }
+        #process-btn-forward:hover, #process-btn-cf:hover {
+            background-color: #1e7e34;
+            transform: scale(1.02);
+        }
+        #clear-btn-forward, #clear-btn-cf {
+            background-color: #dc3545; /* Red for warning/reset */
+            color: white;
+        }
+        #clear-btn-forward:hover, #clear-btn-cf:hover {
+            background-color: #c82333;
+            transform: scale(1.02);
+        }
+
+        .diagnosa-output {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #007bff;
+            border-left: 5px solid #007bff; /* Blue accent border */
+            border-radius: 8px;
+            background-color: #e9f7ff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .diagnosa-output h3 {
+            color: #007bff;
+            margin-top: 0;
+        }
+
+        /* --- CF Result Table --- */
+        .cf-result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .cf-result-table th, .cf-result-table td {
+            border: 1px solid #cce5ff; /* Light blue border */
+            padding: 10px;
+            text-align: left;
+        }
+        .cf-result-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        .cf-result-table td:last-child {
+            font-weight: bold;
+            text-align: right;
+            color: #28a745; /* Green for high confidence */
+        }
+        
+        /* --- TREATMENT SUGGESTION CARD --- */
+        .treatment-card {
+            margin-top: 20px;
+            border: 1px solid #28a745; /* Green border */
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f0fff4; /* Very light green background */
+        }
+        .treatment-card h4, .treatment-card h5 {
+            color: #28a745;
+            margin-top: 0;
+        }
+        .treatment-suggestion p {
+            white-space: pre-wrap;
+            text-align: justify;
+            line-height: 1.6;
+            margin: 0;
+            color: #333;
+        }
+        
+        /* --- HOME TAB ALERT --- */
+        .content-area p {
+            line-height: 1.5;
+        }
+        .content-area h4 {
+            color: #007bff;
+            margin-top: 20px;
+        }
+        .content-area ul {
+            list-style: square;
+            margin-left: -10px;
+        }
+        .content-area ul li {
+            margin-bottom: 5px;
+        }
+
+        /* --- FOOTER --- */
+        .footer {
+            background-color: #343a40; /* Darker color */
+            color: white;
+            width: 100%;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 0.9em;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- RESPONSIVE ADJUSTMENTS --- */
+        @media (max-width: 768px) {
+            .header-banner h1 {
+                font-size: 2em;
+            }
+            .content-area {
+                padding: 20px 15px;
+            }
+            .tab-buttons-container button {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+            .controls {
+                flex-direction: column;
+            }
+            .controls button {
+                width: 100%;
+            }
+            .cf-header, .gejala-cf-item {
+                flex-wrap: wrap;
+            }
+            .gejala-cf-select {
+                width: 100%;
+                margin-top: 5px;
+            }
+            .cf-header span:last-child {
+                width: 100%;
+                text-align: left;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-banner">
+        <h1>Sistem Pakar Diagnosa Penyakit ISPA</h1>
+    </div>
+
+    <div class="tab-buttons-container">
+        <button id="tab-home" onclick="showContent('home')">Home</button>
+        <button id="tab-forward" onclick="showContent('forward')">Reasoning (Forward Chaining)</button>
+        <button id="tab-cf" onclick="showContent('cf')">Uncertainty Reasoning (Certainty Factor)</button>
+    </div>
+
+    <div id="content-home" class="content-area"> 
+    <h2>Selamat Datang di Sistem Pakar Diagnosa Penyakit ISPA</h2>
+    <p>Sistem ini dirancang untuk memberikan diagnosa awal penyakit yang berkaitan dengan Infeksi Saluran Pernapasan Akut (ISPA) menggunakan dua metode kecerdasan buatan (AI):</p>
+     
+    <div style="padding: 15px; background-color: #f7f7f7; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
+        <h3>1. Forward Chaining (Diagnosa Pasti)</h3>
+        <p>Metode berbasis aturan (rule-based) yang mencari kecocokan gejala untuk menentukan diagnosa. Jika minimal 3 gejala yang dipilih cocok dengan penyakit dalam basis data, diagnosa akan ditampilkan.</p>
+    </div>
+
+    <div style="padding: 15px; background-color: #f7f7f7; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
+        <h3>2. Certainty Factor (Diagnosa Probabilistik)</h3>
+        <p>Metode yang digunakan untuk menangani ketidakpastian. Anda akan menilai tingkat keyakinan terhadap setiap gejala, dan sistem akan memberikan hasil diagnosa dalam bentuk persentase probabilitas.</p>
+    </div>
+
+    <p style="font-weight: bold; color: #dc3545; border: 1px solid #f5c6cb; padding: 15px; background-color: #f8d7da; border-radius: 8px; margin-top: 30px; font-size: 1.1em;">
+        ⚠️ Peringatan Penting:<br>
+        Sistem ini adalah alat bantu diagnosa awal dan bukan pengganti pemeriksaan medis profesional. Hasil diagnosa bersifat probabilistik dan tidak definitif. Untuk diagnosa akurat dan penanganan yang tepat, segera konsultasikan dengan dokter.
+    </p>
+</div>
+
+    <div id="content-forward" class="content-area">
+        <h2>Pilih Gejala yang Dialami Pasien</h2>
+        <div class="gejala-list" id="gejala-forward-list">
+            <p>Memuat data gejala...</p>
+        </div>
+        <div class="controls">
+            <button id="process-btn-forward" onclick="processDiagnosa()">Proses Diagnosa</button>
+            <button id="clear-btn-forward" onclick="clearChoices('forward')">Hapus Pilihan</button>
+        </div>
+        <div id="diagnosa-output-forward" class="diagnosa-output">
+            <h3>Hasil Diagnosa dengan Metode Forward Chaining:</h3>
+            <p id="result-text-forward">Silakan pilih gejala dan tekan Proses Diagnosa.</p>
+        </div>
+    </div>
+
+    <div id="content-cf" class="content-area">
+        <h2>Tentukan Tingkat Keyakinan Gejala</h2>
+        <p>Tentukan seberapa yakin Anda terhadap gejala yang dirasakan.</p>
+         
+        <div class="cf-header">
+            <span>Deskripsi Gejala</span>
+            <span>Tingkat Keyakinan (CU)</span>
+        </div>
+
+        <div class="gejala-list" id="gejala-cf-list">
+             <p>Memuat data gejala...</p>
+        </div>
+
+        <div class="controls">
+            <button id="process-btn-cf" onclick="processDiagnosaCF()">Proses Diagnosa</button>
+            <button id="clear-btn-cf" onclick="clearChoices('cf')">Hapus Pilihan</button>
+        </div>
+         
+        <div id="diagnosa-output-cf" class="diagnosa-output">
+            <h3>Hasil Diagnosa dengan Metode Certainty Factor:</h3>
+            <p id="result-text-cf">Silakan pilih tingkat keyakinan gejala dan tekan Proses Diagnosa.</p>
+        </div>
+    </div>
+    <footer class="footer">
+        ©2025. Sistem Pakar Diagnosa Penyakit. Dibuat oleh @yoga_san.
+    </footer>
+
+    <script>
+        // --- DATA MODEL ---
+        let PENYAKIT = {};
+        let GEJALA_DATA = {};
+        let RULES = [];
+        let PENGOBATAN_DATA = {}; 
+        let EXPERT_WEIGHTS = {};
+        
+        // --- DATA CF DUMMY UNTUK PEMILIHAN PENGGUNA ---
+        const CF_OPTIONS = {
+            '0.0': 'Tidak Tahu/Tidak Ada',
+            '0.2': 'Sedikit Tidak Yakin',
+            '0.4': 'Cukup Tidak Yakin',
+            '0.6': 'Cukup Yakin',
+            '0.8': 'Yakin',
+            '1.0': 'Sangat Yakin (Pasti)'
+        };
+
+
+        // Fungsi yang ditambahkan untuk memparsing JSON string yang Anda berikan
+        const DUMMY_JSON_DATA = {
+            "penyakit": {
+                "P01": "Sinusitis",
+                "P02": "Pneumonia",
+                "P03": "Faringitis",
+                "P04": "Asma"
+            },
+            
+            "gejala": {
+                "G01": "Tekanan atau rasa sakit di area wajah",
+                "G02": "Hidung tersumbat atau pilek",
+                "G03": "Pusing atau sakit kepala",
+                "G04": "Batuk",
+                "G05": "Hilangnya indra penciuman dan indra perasa",
+                "G06": "Demam rendah",
+                "G07": "Bau mulut (halitosis)",
+                "G08": "Sakit tenggorokan",
+                "G09": "Diare",
+                "G10": "Demam tinggi",
+                "G11": "Kesulitan bernapas (napas pendek)",
+                "G12": "Nyeri dada yang memburuk saat bernapas dalam",
+                "G13": "Kehilangan nafsu makan",
+                "G14": "Kelelahan dan rasa sakit secara umum",
+                "G15": "Muntah",
+                "G16": "Pembengkakan kelenjar getah bening",
+                "G17": "Kemerahan dan pembengkakan",
+                "G18": "Sulit menelan",
+                "G19": "Batuk kering atau batuk dengan dahak ringan",
+                "G20": "Suara serak atau hilangnya suara",
+                "G21": "Nyeri telinga",
+                "G22": "Sesak napas",
+                "G23": "Pernapasan cepat",
+                "G24": "Mengi (suara napas)",
+                "G25": "Kelelahan",
+                "G26": "Peningkatan denyut jantung"
+            },
+            
+            "user_confidence_scale": {
+                "Tidak Tahu": 0.0,
+                "Tidak Yakin": 0.2,
+                "Sedikit Yakin": 0.4,
+                "Cukup Yakin": 0.6,
+                "Yakin": 0.8,
+                "Sangat Yakin": 1.0
+            },
+            
+            "expert_weights": {
+                "G01": 0.6,
+                "G02": 1.0,
+                "G03": 0.6,
+                "G04": 0.4,
+                "G05": 0.9,
+                "G06": 0.2,
+                "G07": 0.2,
+                "G08": 0.2,
+                "G09": 0.2,
+                "G10": 0.6,
+                "G11": 0.8,
+                "G12": 0.4,
+                "G13": 0.6,
+                "G14": 0.4,
+                "G15": 0.2,
+                "G16": 0.4,
+                "G17": 0.8,
+                "G18": 0.8,
+                "G19": 0.4,
+                "G20": 0.4,
+                "G21": 0.2,
+                "G22": 1.0,
+                "G23": 0.6,
+                "G24": 0.9,
+                "G25": 0.6,
+                "G26": 0.4
+            },
+            
+            "rules": [
+                {
+                    "id": "R01",
+                    "penyakit": "P01",
+                    "gejala": ["G01", "G02", "G03", "G04", "G05", "G07", "G11", "G21", "G25"]
+                },
+                {
+                    "id": "R02",
+                    "penyakit": "P02",
+                    "gejala": ["G03", "G09", "G10", "G12", "G13", "G15", "G19", "G22", "G25", "G26"]
+                },
+                {
+                    "id": "R03",
+                    "penyakit": "P03",
+                    "gejala": ["G03", "G04", "G06", "G08", "G14", "G15", "G16", "G17", "G18", "G20"]
+                },
+                {
+                    "id": "R04",
+                    "penyakit": "P04",
+                    "gejala": ["G04", "G12", "G22", "G23", "G24"]
+                }
+            ],
+            
+            "saran_pengobatan": {
+                "P01": "Untuk mengencerkan lendir dan melembapkan saluran sinus, perbanyak konsumsi air putih dan teh hangat. Secara teratur melakukan irigasi nasal dengan larutan garam dapat membantu membersihkan lendir dan mengurangi iritasi. Menghirup uap dari air panas atau menggunakan humidifier juga dapat melembapkan saluran hidung dan meredakan hidung tersumbat. Untuk mengurangi rasa sakit dan tekanan pada sinus, letakkan kompres hangat di sekitar mata, pipi, dan hidung. Meskipun penggunaan dekongestan yang dijual bebas dapat membantu membuka saluran sinus dan mengurangi pembengkakan, hindari penggunaan dalam jangka waktu yang lama. Hindari polusi dan asap rokok yang dapat memperburuk gejala untuk membantu sistem kekebalan tubuh melawan infeksi.",
+                "P02": "Pastikan istirahat yang cukup untuk membantu melawan infeksi dan mempercepat proses penyembuhan. Untuk mencegah dehidrasi perbanyak minum air putih, jus, dan teh hangat. Memiliki humidifier di kamar tidur dapat meringankan batuk dan kesulitan bernapas dengan menjaga kelembaban udara. Hindari paparan bahan kimia, polusi, dan asap rokok karena dapat memperburuk kondisi paru-paru Anda. Lakukan latihan pernapasan dalam untuk membantu memudahkan pernapasan.",
+                "P03": "Untuk menjaga tenggorokan agar tetap lembap dan menghindari dehidrasi perbanyak minum air putih, mempertahankan kelembaban udara di kamar tidur dengan humidifier dapat membantu mengurangi gejala sakit tenggorokan. Hindari paparan bahan kimia, polusi, dan asap rokok karena dapat memperburuk kondisi tenggorokan Anda. Untuk mencegah iritasi lebih lanjut pada tenggorokan hindari berbicara terlalu banyak atau berteriak. Lozenges atau permen pelega tenggorokan dapat membantu mengurangi sakit tenggorokan sementara.",
+                "P04": "Sangat penting untuk mengenali dan menghindari pemicu asma, seperti alergi atau polusi udara serta menggunakan obat-obatan seperti inhaler dan kortikosteroid secara teratur sesuai dengan petunjuk dokter. Selalu bawa inhaler untuk meredakan gejala sesak napas dan mengatasi serangan asma. Hindari asap rokok dan polusi udara yang bisa memperburuk gejala serta gunakan humidifier di rumah untuk menjaga kelembaban udara. Selain itu hindari olahraga yang terlalu intens dan kelola stres dengan teknik relaksasi."
+            }
+        };
+
+        // Mengganti fungsi loadData() agar menggunakan data DUMMY_JSON_DATA 
+        // sehingga file JSON eksternal tidak diperlukan jika Anda ingin menjalankan kode ini sebagai file HTML tunggal.
+        function loadData() {
+             // Simulasi pemuatan data dari file JSON
+            const data = DUMMY_JSON_DATA; 
+            
+            PENYAKIT = data.penyakit;
+            GEJALA_DATA = data.gejala;
+            RULES = data.rules;
+            PENGOBATAN_DATA = data.saran_pengobatan || {}; 
+            EXPERT_WEIGHTS = data.expert_weights || {};
+            
+            initGejalaList('forward');
+            initGejalaList('cf');
+            showContent('home');
+        }
+
+        // --- FUNGSI TAMPILAN DAN KONTROL ---
+
+        function initGejalaList(mode) {
+            const listElement = document.getElementById(`gejala-${mode}-list`);
+            if (!listElement) return;
+            
+            listElement.innerHTML = '';
+            
+            for (const kode in GEJALA_DATA) {
+                const deskripsi = GEJALA_DATA[kode];
+                
+                if (mode === 'forward') {
+                    // List untuk Forward Chaining (checkbox)
+                    listElement.innerHTML += `
+                        <div class="gejala-item">
+                            <input type="checkbox" id="fwd_${kode}" name="gejala_fwd" value="${kode}"> 
+                            <label for="fwd_${kode}">${kode}: ${deskripsi}</label>
+                        </div>
+                    `;
+                } else if (mode === 'cf') {
+                    // List untuk Certainty Factor (dropdown)
+                    let optionsHTML = '';
+                    // Menggunakan data CF_OPTIONS yang sudah ada (0.0 sampai 1.0)
+                    for (const value in CF_OPTIONS) {
+                        optionsHTML += `<option value="${value}">${CF_OPTIONS[value]} (${value})</option>`;
+                    }
+
+                    listElement.innerHTML += `
+                        <div class="gejala-cf-item">
+                            <span class="gejala-cf-label">${kode}: ${deskripsi}</span>
+                            <select id="cf_${kode}" name="gejala_cf" class="gejala-cf-select">
+                                ${optionsHTML}
+                            </select>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function showContent(mode) {
+            document.querySelectorAll('.tab-buttons-container button').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById('content-home').style.display = 'none';
+            document.getElementById('content-forward').style.display = 'none';
+            document.getElementById('content-cf').style.display = 'none';
+
+            if (mode === 'home') {
+                document.getElementById('content-home').style.display = 'block';
+                document.getElementById('tab-home').classList.add('active');
+            } else if (mode === 'forward') {
+                document.getElementById('content-forward').style.display = 'block';
+                document.getElementById('tab-forward').classList.add('active');
+            } else if (mode === 'cf') {
+                document.getElementById('content-cf').style.display = 'block';
+                document.getElementById('tab-cf').classList.add('active');
+            }
+        }
+
+        function clearChoices(mode) {
+            if (mode === 'forward') {
+                document.querySelectorAll('#gejala-forward-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.getElementById('result-text-forward').innerHTML = 'Pilihan telah dihapus. Silakan pilih gejala baru.';
+            } else if (mode === 'cf') {
+                document.querySelectorAll('#gejala-cf-list select').forEach(sel => sel.value = '0.0');
+                document.getElementById('result-text-cf').innerHTML = 'Pilihan telah dihapus. Silakan tentukan tingkat keyakinan baru.';
+            }
+        }
+        
+        // --- LOGIKA CF (Certainty Factor) ---
+function cfCombine(cf1, cf2) {
+    // Fungsi kombinasi standar untuk Certainty Factor (OR logic)
+    return cf1 + cf2 * (1 - cf1); 
+}
+
+function processDiagnosaCF() {
+    const resultTextCF = document.getElementById('result-text-cf');
+    const selectedCFs = {};
+    
+    // 1. Ambil input Certainty User (CU)
+    document.querySelectorAll('#gejala-cf-list select').forEach(select => {
+        const kode = select.id.replace('cf_', '');
+        const cfValue = parseFloat(select.value);
+        if (cfValue > 0) {
+            selectedCFs[kode] = cfValue;
+        }
+    });
+
+    if (Object.keys(selectedCFs).length === 0) {
+        resultTextCF.innerHTML = 'Pilih minimal satu gejala dengan tingkat keyakinan lebih dari 0.0.';
+        return;
+    }
+
+    let diagnosaResult = {};
+
+    // 2. Iterasi melalui semua aturan (RULES)
+    RULES.forEach(rule => {
+        const kodePenyakit = rule.penyakit;
+        // BARIS CE LAMA DIHAPUS: 
+        // const CE = (rule.cf_expert !== undefined && rule.cf_expert !== null) ? parseFloat(rule.cf_expert) : CE_PLACEHOLDER; 
+        
+        let CF_H_E = null;
+
+        rule.gejala.forEach(kodeGejala => {
+            const CU = selectedCFs[kodeGejala]; // Certainty User (Input Pengguna)
+            
+            // BARIS PENTING: Ambil CE dari EXPERT_WEIGHTS (bobot spesifik per gejala)
+            // Jika kode gejala tidak memiliki bobot, asumsikan 0.0.
+            const CE = EXPERT_WEIGHTS[kodeGejala] !== undefined ? EXPERT_WEIGHTS[kodeGejala] : 0.0; 
+
+            if (CU !== undefined && CE > 0) {
+                // Perhitungan CF untuk Gejala: CF[H, E] = CU * CE
+                const CF_gejala = CU * CE; 
+
+                // Menggabungkan CF gejala (AND logic implisit)
+                if (CF_H_E === null) {
+                    CF_H_E = CF_gejala;
+                } else {
+                    CF_H_E = cfCombine(CF_H_E, CF_gejala);
+                }
+            }
+        });
+
+        // 3. Gabungkan hasil dari aturan yang mengarah ke penyakit yang sama
+        if (CF_H_E !== null && CF_H_E > 0) { // Hanya proses jika CF > 0
+            if (diagnosaResult[kodePenyakit] === undefined) {
+                diagnosaResult[kodePenyakit] = CF_H_E;
+            } else {
+                // Menggabungkan CF Hipotesis yang sama dari aturan yang berbeda (OR logic)
+                diagnosaResult[kodePenyakit] = cfCombine(diagnosaResult[kodePenyakit], CF_H_E);
+            }
+        }
+    });
+
+
+    // 4. Tampilkan Hasil
+    let resultHTML = '';
+    const finalResults = [];
+
+    for (const kodePenyakit in diagnosaResult) {
+        const cf = diagnosaResult[kodePenyakit];
+        const percentage = (cf * 100).toFixed(2);
+        finalResults.push({
+            kode: kodePenyakit,
+            penyakit: PENYAKIT[kodePenyakit] || kodePenyakit,
+            cf: cf,
+            percentage: percentage
+        });
+    }
+
+    // Urutkan hasil dari persentase tertinggi
+    finalResults.sort((a, b) => b.cf - a.cf);
+
+    if (finalResults.length > 0) {
+        // Konversi hasil ke format tabel
+        resultHTML += `
+            Diagnosa Ditemukan berdasarkan Certainty Factor (Diurutkan dari yang tertinggi):<br>
+            <table class="cf-result-table">
+                <thead>
+                    <tr>
+                        <th>Nama Penyakit</th>
+                        <th>CF Akhir</th>
+                        <th>Persentase (%)</th>
+                        </tr>
+                </thead>
+                <tbody>
+                    ${finalResults.map(res => `
+                        <tr>
+                            <td>${res.penyakit}</td>
+                            <td>${res.cf.toFixed(4)}</td>
+                            <td>${res.percentage}%</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+        
+        // Tampilkan Saran Pengobatan untuk diagnosa dengan CF tertinggi
+        const primaryDiagnosa = finalResults[0];
+        const saranPengobatan = PENGOBATAN_DATA[primaryDiagnosa.kode] || 'Saran pengobatan tidak tersedia.';
+
+        resultHTML += `
+            <div class="treatment-card">
+                <h4 style="color: #28a745; margin-bottom: 5px;">Diagnosa Utama: **${primaryDiagnosa.penyakit}** (${primaryDiagnosa.percentage}%)</h4>
+                <h5 style="color: #28a745; margin-top: 5px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">Saran Pengobatan:</h5>
+                <p class="treatment-suggestion">${saranPengobatan}</p>
+            </div>
+        `;
+
+    } else {
+        resultHTML = `Tidak ada diagnosa yang dapat ditentukan karena tidak ada gejala yang dipilih dengan keyakinan (CU > 0.0), atau tidak ada aturan yang cocok.`;
+    }
+
+    // BARIS PENTING DIHAPUS: Peringatan CE_PLACEHOLDER dihapus karena tidak lagi digunakan.
+    // resultHTML += `<br><p style="color:red; font-size:0.9em;">Catatan: Nilai Certainty Factor Expert (CE) = ${CE_PLACEHOLDER} (placeholder)...</p>`;
+    
+    resultTextCF.innerHTML = resultHTML;
+}
+
+
+        // --- LOGIKA INFERENSI FORWARD CHAINING (Partial Match) ---
+
+        function processDiagnosa() {
+            const selectedGejala = Array.from(
+                document.querySelectorAll('#gejala-forward-list input[type="checkbox"]:checked')
+            ).map(el => el.value);
+            
+            if (selectedGejala.length === 0) {
+                document.getElementById('result-text-forward').innerHTML = 'Pilih minimal satu gejala untuk memulai diagnosa.';
+                return;
+            }
+
+            let foundDiagnosaCodes = [];
+            
+            const MINIMUM_MATCH = 3; 
+
+            RULES.forEach(rule => {
+                let matchCount = 0;
+                
+                rule.gejala.forEach(g => {
+                    if (selectedGejala.includes(g)) {
+                        matchCount++;
+                    }
+                });
+                
+                if (matchCount >= MINIMUM_MATCH) {
+                    foundDiagnosaCodes.push(rule.penyakit);
+                }
+            });
+
+            let resultHTML = '';
+            if (foundDiagnosaCodes.length > 0) {
+                const uniqueDiagnosaCodes = [...new Set(foundDiagnosaCodes)];
+
+                resultHTML = `Diagnosa Ditemukan (Kecocokan ≥ ${MINIMUM_MATCH} Gejala):<br>`;
+
+                // Iterasi untuk menampilkan diagnosa dan saran pengobatan
+                uniqueDiagnosaCodes.forEach(kode => {
+                    const namaPenyakit = PENYAKIT[kode] || 'Tidak diketahui';
+                    const saran = PENGOBATAN_DATA[kode] || 'Saran pengobatan tidak tersedia.';
+                    
+                    resultHTML += `
+                        <div class="treatment-card" style="border-left: 5px solid #007bff; background-color: #f0f7ff;">
+                            <h4 style="color: #007bff; margin-bottom: 5px;">Hasil Diagnosa: ${namaPenyakit}</h4>
+                            <h5 style="color: #28a745; margin-top: 5px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">Saran Pengobatan:</h5>
+                            <p class="treatment-suggestion">${saran}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                resultHTML = `Tidak ada diagnosa yang mencapai ambang batas kecocokan (Minimal ${MINIMUM_MATCH} gejala cocok). Diperlukan pemeriksaan lebih lanjut.`;
+            }
+            
+            document.getElementById('result-text-forward').innerHTML = resultHTML;
+        }
+
+        // Inisialisasi: Panggil loadData() saat halaman selesai dimuat.
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

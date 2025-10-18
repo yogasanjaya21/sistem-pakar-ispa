@@ -1,0 +1,105 @@
+{
+  "penyakit": {
+    "P01": "Sinusitis",
+    "P02": "Pneumonia",
+    "P03": "Faringitis",
+    "P04": "Asma"
+  },
+  
+  "gejala": {
+    "G01": "Tekanan atau rasa sakit di area wajah",
+    "G02": "Hidung tersumbat atau pilek",
+    "G03": "Pusing atau sakit kepala",
+    "G04": "Batuk",
+    "G05": "Hilangnya indra penciuman dan indra perasa",
+    "G06": "Demam rendah",
+    "G07": "Bau mulut (halitosis)",
+    "G08": "Sakit tenggorokan",
+    "G09": "Diare",
+    "G10": "Demam tinggi",
+    "G11": "Kesulitan bernapas (napas pendek)",
+    "G12": "Nyeri dada yang memburuk saat bernapas dalam",
+    "G13": "Kehilangan nafsu makan",
+    "G14": "Kelelahan dan rasa sakit secara umum",
+    "G15": "Muntah",
+    "G16": "Pembengkakan kelenjar getah bening",
+    "G17": "Kemerahan dan pembengkakan",
+    "G18": "Sulit menelan",
+    "G19": "Batuk kering atau batuk dengan dahak ringan",
+    "G20": "Suara serak atau hilangnya suara",
+    "G21": "Nyeri telinga",
+    "G22": "Sesak napas",
+    "G23": "Pernapasan cepat",
+    "G24": "Mengi (suara napas)",
+    "G25": "Kelelahan",
+    "G26": "Peningkatan denyut jantung"
+  },
+  
+  "user_confidence_scale": {
+    "Tidak Tahu": 0.0,
+    "Tidak Yakin": 0.2,
+    "Sedikit Yakin": 0.4,
+    "Cukup Yakin": 0.6,
+    "Yakin": 0.8,
+    "Sangat Yakin": 1.0
+  },
+  
+  "expert_weights": {
+    "G01": 0.6,
+    "G02": 1.0,
+    "G03": 0.6,
+    "G04": 0.4,
+    "G05": 0.9,
+    "G06": 0.2,
+    "G07": 0.2,
+    "G08": 0.2,
+    "G09": 0.2,
+    "G10": 0.6,
+    "G11": 0.8,
+    "G12": 0.4,
+    "G13": 0.6,
+    "G14": 0.4,
+    "G15": 0.2,
+    "G16": 0.4,
+    "G17": 0.8,
+    "G18": 0.8,
+    "G19": 0.4,
+    "G20": 0.4,
+    "G21": 0.2,
+    "G22": 1.0,
+    "G23": 0.6,
+    "G24": 0.9,
+    "G25": 0.6,
+    "G26": 0.4
+  },
+  
+  "rules": [
+    {
+      "id": "R01",
+      "penyakit": "P01",
+      "gejala": ["G01", "G02", "G03", "G04","G05","G07", "G11""G21", "G25"]
+    },
+    {
+      "id": "R02",
+      "penyakit": "P02",
+      "gejala": ["G03", "G09", "G10", "G12", "G13", "G15", "G19", "G22", "G25", "G26"]
+    },
+    {
+      "id": "R03",
+      "penyakit": "P03",
+      "gejala": ["G03", "G04", "G06", "G08", "G14", "G15", "G16", "G17", "G18", "G20"]
+    },
+    {
+      "id": "R04",
+      "penyakit": "P04",
+      "gejala": ["G04", "G12", "G22", "G23", "G24"]
+    }
+  ],
+  
+  "saran_pengobatan": {
+    "P01": "Untuk mengencerkan lendir dan melembapkan saluran sinus, perbanyak konsumsi air putih dan teh hangat. Secara teratur melakukan irigasi nasal dengan larutan garam dapat membantu membersihkan lendir dan mengurangi iritasi. Menghirup uap dari air panas atau menggunakan humidifier juga dapat melembapkan saluran hidung dan meredakan hidung tersumbat. Untuk mengurangi rasa sakit dan tekanan pada sinus, letakkan kompres hangat di sekitar mata, pipi, dan hidung. Meskipun penggunaan dekongestan yang dijual bebas dapat membantu membuka saluran sinus dan mengurangi pembengkakan, hindari penggunaan dalam jangka waktu yang lama. Hindari polusi dan asap rokok yang dapat memperburuk gejala untuk membantu sistem kekebalan tubuh melawan infeksi.",
+    "P02": "Pastikan istirahat yang cukup untuk membantu melawan infeksi dan mempercepat proses penyembuhan. Untuk mencegah dehidrasi perbanyak minum air putih, jus, dan teh hangat. Memiliki humidifier di kamar tidur dapat meringankan batuk dan kesulitan bernapas dengan menjaga kelembaban udara. Hindari paparan bahan kimia, polusi, dan asap rokok karena dapat memperburuk kondisi paru-paru Anda. Lakukan latihan pernapasan dalam untuk membantu memudahkan pernapasan.",
+    "P03": "Untuk menjaga tenggorokan agar tetap lembap dan menghindari dehidrasi perbanyak minum air putih, mempertahankan kelembaban udara di kamar tidur dengan humidifier dapat membantu mengurangi gejala sakit tenggorokan. Hindari paparan bahan kimia, polusi, dan asap rokok karena dapat memperburuk kondisi tenggorokan Anda. Untuk mencegah iritasi lebih lanjut pada tenggorokan hindari berbicara terlalu banyak atau berteriak. Lozenges atau permen pelega tenggorokan dapat membantu mengurangi sakit tenggorokan sementara.",
+    "P04": "Sangat penting untuk mengenali dan menghindari pemicu asma, seperti alergi atau polusi udara serta menggunakan obat-obatan seperti inhaler dan kortikosteroid secara teratur sesuai dengan petunjuk dokter. Selalu bawa inhaler untuk meredakan gejala sesak napas dan mengatasi serangan asma. Hindari asap rokok dan polusi udara yang bisa memperburuk gejala serta gunakan humidifier di rumah untuk menjaga kelembaban udara. Selain itu hindari olahraga yang terlalu intens dan kelola stres dengan teknik relaksasi."
+  }
+}
